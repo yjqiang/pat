@@ -92,10 +92,10 @@ int main() {
 		}
 	}
 
-	qsort(stus1, N, sizeof(Student), cmp);
-	qsort(stus2, N, sizeof(Student), cmp);
-	qsort(stus3, N, sizeof(Student), cmp);
-	qsort(stus4, N, sizeof(Student), cmp);
+	qsort(stus1, size1, sizeof(Student), cmp);
+	qsort(stus2, size2, sizeof(Student), cmp);
+	qsort(stus3, size3, sizeof(Student), cmp);
+	qsort(stus4, size4, sizeof(Student), cmp);
 
 	printf("%d\n", size1 + size2 + size3 + size4);
 	for (i = 0; i < size1; ++i)
