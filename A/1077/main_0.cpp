@@ -46,6 +46,7 @@ int main() {
 		myRevert(b, n_b);
 
 		// 两两匹配，最终结果长度<=之前的结果长度；且一定小于等于原字符串长度
+		// 结果长度可以看作是第一个不匹配的下标
 		for (k = 0; k < n_a && k < n_b && k < max_same && a[k] == b[k]; ++k);
 		// printf("%d\n", k);
 		max_same = k;
