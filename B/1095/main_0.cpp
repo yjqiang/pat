@@ -95,7 +95,7 @@ int main() {
 		}
 		else if (command == 2) {
 			scanf("%d", &room);
-			printf("Case %d: %d %d\n", i, command, room);
+			printf("Case %d: %d %03d\n", i, command, room);
 			if (rooms.find(room) == rooms.end())
 				printf("NA\n");
 			else {
