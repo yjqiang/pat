@@ -19,7 +19,8 @@ int main() {
 
 	int i, k;
 	double sum = 0;
-	double element;
+	// element初始化为0，这样即使sscanf没有赋值，也不会炸掉array
+	double element = 0;
 	int count_verified = 0;
 	bool isOk;
 	for (i = 0; i < N; ++i) {
