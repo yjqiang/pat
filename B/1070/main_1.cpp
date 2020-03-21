@@ -23,7 +23,8 @@ int main() {
 	for (i = 0; i < N; ++i)
 		scanf("%d", nums + i);
 	sort(nums, nums + N);
-	// 每次都取的最短的两根
+
+	// 哈夫曼那样，取最短的两根
 	double result = nums[0];
 	for (i = 1; i < N; ++i)
 		result = (nums[i] + result) / 2;
