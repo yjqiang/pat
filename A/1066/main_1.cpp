@@ -27,40 +27,40 @@ int getHeight(Node* r) {
 
 // 右单旋
 // 返回新的父节点
-Node* LL(Node* A) {
+void LL(Node*& A) {
 	Node* B = A->left;
 	A->left = B->right;
 	B->right = A;
-	return B;
+	A = B;
 }
 
 // 左单旋
 // 返回新的父节点
-Node* RR(Node* A) {
+void RR(Node*& A) {
 	Node* B = A->right;
 	A->right = B->left;
 	B->left = A;
-	return B;
+	A = B;
 }
 
 // 先左单旋(RR)，后右单旋(LL)
 // 返回新的父节点
-Node* LR(Node* A) {
-	A->left = RR(A->left);
-	return LL(A);
+void LR(Node*& A) {
+	RR(A->left);
+	LL(A);
 }
 
 // 先右单旋(LL)，后左单旋(RR)
 // 返回新的父节点
-Node* RL(Node* A) {
-	A->right = LL(A->right);
-	return RR(A);
+void RL(Node*& A) {
+	LL(A->right);
+	RR(A);
 }
 
 
 // 递归插入新元素到叶节点，并调整平衡
 // 返回新的父节点
-Node* insert(Node* root, int new_value) {
+void insert(Node*& root, int new_value) {
 	// 当前为叶节点
 	if (root == NULL) {
 		root = (Node*)malloc(sizeof(Node));
@@ -69,30 +69,29 @@ Node* insert(Node* root, int new_value) {
 	}
 	// 否则递归查询至叶节点
 	else if (new_value < root->value) {
-		root->left = insert(root->left, new_value);
+		insert(root->left, new_value);
 		// 加入左子树，最坏只可能是左子树高出右子树，超过1了
 		// 递归的机制使得，在最小不平衡树这里首先被调整（LL、LR、RL、RR），再往上追溯，就都平衡了
 		if (getHeight(root->left) - getHeight(root->right) > 1) {
 			// LL
 			if (new_value < root->left->value)
-				root = LL(root);
+				LL(root);
 			else // LR
-				root = LR(root);
+				LR(root);
 		}
 	}
 	else {
-		root->right = insert(root->right, new_value);
+		insert(root->right, new_value);
 		// 加入右子树，最坏只可能是右子树高出右子树，超过1了
 		// 递归的机制使得，在最小不平衡树这里首先被调整（LL、LR、RL、RR），再往上追溯，就都平衡了
 		if (getHeight(root->right) - getHeight(root->left) > 1) {
 			// RL
 			if (new_value < root->right->value)
-				root = RL(root);
+				RL(root);
 			else // RR
-				root = RR(root);
+				RR(root);
 		}
 	}
-	return root;
 
 }
 
@@ -105,7 +104,7 @@ int main() {
 	for (i = 0; i < N; ++i) {
 		scanf("%d", &new_value);
 		// 不断更新root
-		root = insert(root, new_value);
+		insert(root, new_value);
 	}
 	printf("%d", root->value);
 	
