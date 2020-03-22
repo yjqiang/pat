@@ -29,6 +29,7 @@ bool isOk() {
 			// 对角线/方向时， y = x + b => nums[i] - i == nums[j] - j
 			// 对角线\方向时， y = -x + b => nums[i] + i == nums[j] + j
 			// 所以 nums[i]-nums[j] == ±(i - j)
+			// 或者等腰直角三角形解释（两腰相等）
 			if (nums[i] == nums[j] || abs(nums[i] - nums[j]) == abs(i - j))
 				return false;
 	return true;
