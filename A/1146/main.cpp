@@ -50,9 +50,9 @@ bool check() {
 }
 
 int main() {
-	
+
 	scanf("%d%d", &N, &M);
-	
+
 	int v0, v1;
 	int i, h;
 	for (i = 0; i < M; ++i) {
@@ -61,7 +61,6 @@ int main() {
 		++in[v1];
 	}
 
-	int v;
 	int K;
 	// 控制输出格式
 	bool is_first = true;
@@ -78,7 +77,7 @@ int main() {
 				is_first = false;
 			}
 		}
-		
+
 
 	}
 
