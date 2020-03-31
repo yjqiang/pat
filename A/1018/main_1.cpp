@@ -1,133 +1,174 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include <iostream>
-#include <cctype>
+#include <vector>
 #include <algorithm>
-#include <cmath>
-# include <climits>
-#include <cstring>
-#include <map>
 #include <cstdio>
+#include <cstring>
+#include <string>
+#include <iostream>
+#include <map>
+#include <cmath>
+#include <climits>
 #include <queue>
+#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
-#define MAX_N 500
-int costs_v[MAX_N + 1];
-int dist[MAX_N + 1];
-vector<int> neighbours[MAX_N + 1];
-int paths[MAX_N + 1][MAX_N + 1];
-bool sets[MAX_N + 1] = { false };
-vector<int> path_result;
-vector<int> tmp_path_result;
+#define N_MAX 501
+// 源点
+#define START 0
 
-int min_back = INT_MAX, min_need = INT_MAX;
+int C_max, N, S_p, M;
+
+// 邻接矩阵(time)
+// INT_MAX 表示无边
+int edges[N_MAX][N_MAX];
+// 每点的车子数目
+int num_bikes[N_MAX];
 
 
-void dfs(int S_p) {
-	tmp_path_result.push_back(S_p);
-	int i, n;
-	int back, need;
-	int x;
-	if (!S_p) {
-		back = 0; need = 0;
-		for (i = tmp_path_result.size() - 1; i >= 0; --i) {
-			x = costs_v[tmp_path_result[i]];
-			if (x >= 0)
-				back += x;
-			else if (back >= -x)
-				back -= (-x);
+
+// dijkstra使用
+// 是否已经收入S里面
+bool is_in_set[N_MAX];
+// 记录最短路径长度
+int path_dists[N_MAX];
+// 记录路径回溯，即给定的最短路径(path_dists[i])下，前缀点的数组(0->...->前缀点->i 为最短路径)
+// 注意最短路径可能多条，可能对应多个前缀点
+vector<int> path_neighbours[N_MAX];
+
+// 从start带出来的，跑完后带回start的车子数目
+int min_bring_from = INT_MAX, min_bring_back = INT_MAX;
+// 对应最佳路径
+vector<int>result;
+vector<int> tmp;
+void dfs(int vex) {
+	int i;
+	// 等于源点了
+	if (vex == START) {
+		// 沿路径统计
+		int bring_from = 0, bring_back = 0;
+		int difference;
+		// 路径是倒着的
+		for (i = tmp.size() - 1; i >= 0; --i) {
+			difference = num_bikes[tmp[i]] - C_max / 2;
+			// 车子多了，就积攒起来了
+			if (difference >= 0)
+				bring_back += difference;
+			// 车子缺了，就把沿途从start攒起来的车子投进去;可能还得再多带一点车子（从start那里）
 			else {
-				need += (-x) - back;
-				back = 0;			
+				difference = -difference;
+				if (bring_back >= difference)
+					bring_back -= difference;
+				else {
+					// 注意顺序，先扣除bring_back,表示沿途收集的车子全填到这个缺口里，然后把bring_back归零
+					bring_from += difference - bring_back;
+					bring_back = 0;
+				}
 			}
 		}
-		if (need < min_need) {
-			min_need = need;
-			min_back = back;
-			path_result = tmp_path_result;
+
+		if (bring_from < min_bring_from) {
+			result = tmp;
+			min_bring_from = bring_from;
+			min_bring_back = bring_back;
 		}
-		else if (need == min_need && back < min_back) {
-			min_back = back;
-			path_result = tmp_path_result;
+		else if (bring_from == min_bring_from && bring_back < min_bring_back) {
+			result = tmp;
+			min_bring_back = bring_back;
 		}
-		tmp_path_result.pop_back();
 		return;
 	}
-	n = neighbours[S_p].size();
-	for (i = 0; i < n; ++i)
-		dfs(neighbours[S_p][i]);
-	tmp_path_result.pop_back();
+
+	int n_size = path_neighbours[vex].size();
+	tmp.push_back(vex);
+	for (i = 0; i < n_size; ++i)
+		dfs(path_neighbours[vex][i]);
+	tmp.pop_back();
+
 }
 
 int main() {
-	int C_max, N, S_p, M;
-	scanf("%d%d%d%d", &C_max, &N, &S_p, &M);
+	scanf("%d %d %d %d", &C_max, &N, &S_p, & M);
 
-	int index, k;
-	int tmp_int;
-	for (index = 1; index <= N; ++index) {
-		scanf("%d", &tmp_int);
-		costs_v[index] = tmp_int - C_max / 2;
+	int i, h;
+	num_bikes[0] = 0;
+	for (i = 1; i <= N; ++i)
+		scanf("%d", num_bikes + i);
+
+	for (i = 0; i <= N; ++i)
+		for (h = 0; h <= N; ++h)
+			// 清理所有边
+			edges[i][h] = INT_MAX;
+
+	int S_i, S_j, T_ij;
+	for (i = 0; i < M; ++i) {
+		scanf("%d %d %d", &S_i, &S_j, &T_ij);
+		edges[S_i][S_j] = edges[S_j][S_i] = T_ij;
 	}
 
-	for (index = 0; index <= N; ++index) {
-		dist[index] = INT_MAX;
+
+
+	// 下面全是dijkstra
+	for (i = 0; i <= N; ++i) {
+		is_in_set[i] = false;
+		path_dists[i] = INT_MAX;
 	}
 
-	for (index = 0; index <= N; ++index) 
-		for (k = 0; k <= N; ++k) {
-			paths[index][k] = INT_MAX;
-		}
+	// 把源点放入set
+	int cur = START;
+	is_in_set[START] = true;
+	path_dists[START] = 0;
 
-	int from, to, path;
-	for (index = 0; index < M; ++index) {
-		scanf("%d%d%d", &from, &to, &path);
-		paths[from][to] = path;
-		paths[to][from] = path;
-	}
+	// 松弛路径后挑选最短路径
+	int min_dist, min_index;
 
-	
-	// dijkstra
-	// add vertice0
-	sets[0] = true;
-	dist[0] = 0;
-	int cur = 0;
-	int min_element, min_index, distance;
-	for (index = 0; index < N; ++index) {
-		for (k = 0; k <= N; ++k)
-			if (paths[cur][k] != INT_MAX &&!sets[k]) {
-				distance = dist[cur] + paths[cur][k];
-				if (distance < dist[k]) {
-					dist[k] = distance;
-					neighbours[k].clear();
-					neighbours[k].push_back(cur);
+	// 其他变量
+	int cur_dist;
+
+	// 实际有N+1个点，所以循环N次
+	for (i = 1; i <= N; ++i) {
+		// 松弛cur邻接点的路径
+		for (h = 0; h <= N; ++h)
+			if (!is_in_set[h] && edges[h][cur] != INT_MAX) {
+				// 若h以cur为前缀节点，计算对应参数
+				cur_dist = path_dists[cur] + edges[h][cur];
+
+				if (cur_dist < path_dists[h]) {
+					path_dists[h] = cur_dist;
+					// 更新前缀点
+					path_neighbours[h].clear();
+					path_neighbours[h].push_back(cur);
 				}
-				else if (distance == dist[k])
-					neighbours[k].push_back(cur);				
+				// 有相同长度的路径
+				else if (cur_dist == path_dists[h]) {
+					// 更新前缀点
+					path_neighbours[h].push_back(cur);
+				}
 			}
 
-		min_element = INT_MAX;
-		for ( k = 0; k <= N; ++k)
-			if (!sets[k] && dist[k] != INT_MAX && dist[k] < min_element) {
-				min_element = dist[k];
-				min_index = k;
+		// 找最小值，放入S
+		min_dist = INT_MAX;
+		for (h = 0; h <= N; ++h)
+			if (!is_in_set[h] && path_dists[h] < min_dist) {
+				min_dist = path_dists[h];
+				min_index = h;
 			}
-		sets[min_index] = true;
+
+		// 放入S
+		is_in_set[min_index] = true;
 		cur = min_index;
 	}
 
-
+	// 回溯最短路径，找到最要求符合的路径（the least number of bikes sent from PBMC；requires minimum number of bikes that we must take back to PBMC）
 	dfs(S_p);
 
-	printf("%d ", min_need);
-	printf("0");
-	for (index = path_result.size() - 2; index >= 0; --index) {
-		printf("->%d", path_result[index]);
-	}
-	printf(" %d", min_back);
+	printf("%d 0", min_bring_from);
+	for (i = result.size()-1; i >= 0; --i)
+		printf("->%d", result[i]);
+	printf(" %d", min_bring_back);
 
 	system("pause");
-
-
 	return 0;
 }
