@@ -1,95 +1,126 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include <iostream>
-
-#include <map>
-
-#include <set>
-#include <cstring>
-#include <climits>
+#include <vector>
+#include <algorithm>
 #include <cstdio>
+#include <cstring>
+#include <string>
+#include <iostream>
+#include <map>
+#include <cmath>
+#include <climits>
 #include <queue>
+#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
-#define N_MAX 501
-#define NA INT_MAX
+#define N_MAX 500
 
-int path_distances[N_MAX][N_MAX];
-int path_costs[N_MAX][N_MAX];
 
-int dist[N_MAX];
-int sum_costs[N_MAX];
-int neighbour[N_MAX];
+// 邻接矩阵(time)
+// INT_MAX 表示无边
+// distance
+int edges[N_MAX][N_MAX];
+// cost
+int costs[N_MAX][N_MAX];
+
+
+
+// dijkstra使用
+// 是否已经收入S里面
 bool is_in_set[N_MAX];
+// 记录最短路径长度
+int path_dists[N_MAX];
+// 记录cost
+int path_costs[N_MAX];
+// 回溯路径
+int path_neighbours[N_MAX];
 
 
 int main() {
 	int N, M, S, D;
-	scanf("%d%d%d%d", &N, &M, &S, &D);
+	scanf("%d %d %d %d", &N, &M, &S, &D);
 
-	int i, k;
-	for (i = 0; i < N; ++i) {
-		dist[i] = NA;
-		sum_costs[i] = NA;
-		neighbour[i] = -1;
-		is_in_set[i] = false;
-	}
-	for (i = 0; i < N; ++i)
-		for (k = 0; k < N; ++k)
-			path_distances[i][k] = NA;
+	int i, h;
 
-	int from, to, distance, cost;
+	for (i = 0; i <= N; ++i)
+		for (h = 0; h <= N; ++h)
+			// 清理所有边
+			edges[i][h] = costs[i][h] = INT_MAX;
+
+	int City1, City2, Distance, Cost;
 	for (i = 0; i < M; ++i) {
-		scanf("%d %d %d %d", &from, &to, &distance, &cost);
-		path_distances[from][to] = distance;
-		path_distances[to][from] = distance;
-
-		path_costs[from][to] = cost;
-		path_costs[to][from] = cost;
+		scanf("%d %d %d %d", &City1, &City2, &Distance, &Cost);
+		edges[City1][City2] = edges[City2][City1] = Distance;
+		costs[City1][City2] = costs[City2][City1] = Cost;
 	}
 
-	
-	is_in_set[S] = true;
-	dist[S] = 0;
-	sum_costs[S] = 0;
 
+
+	// 下面全是dijkstra
+	for (i = 0; i < N; ++i) {
+		is_in_set[i] = false;
+		path_dists[i] = INT_MAX;
+		path_costs[i] = INT_MAX;
+		path_neighbours[i] = -1;
+	}
+
+	// 把源点放入set
 	int cur = S;
+	is_in_set[S] = true;
+	path_dists[S] = 0;
+	path_costs[S] = 0;
+
+	// 松弛路径后挑选最短路径
 	int min_dist, min_index;
 
+	// 其他变量
+	int cur_dist, cur_cost;
+
+	// 循环N-1次
 	for (i = 1; i < N; ++i) {
-		for (k = 0; k < N; ++k)
-			if (path_distances[cur][k] != NA && !is_in_set[k]) {
-				if (dist[cur] + path_distances[cur][k] < dist[k]) {
-					dist[k] = dist[cur] + path_distances[cur][k];
-					neighbour[k] = cur;
-					sum_costs[k] = sum_costs[cur] + path_costs[cur][k];
+		// 松弛cur邻接点的路径
+		for (h = 0; h < N; ++h)
+			if (!is_in_set[h] && edges[h][cur] != INT_MAX) {
+				// 若h以cur为前缀节点，计算对应参数
+				cur_dist = path_dists[cur] + edges[h][cur];
+				cur_cost = path_costs[cur] + costs[h][cur];
+
+				if (cur_dist < path_dists[h]) {
+					path_dists[h] = cur_dist;
+					path_neighbours[h] = cur;
+					path_costs[h] = cur_cost;
 				}
-				else if (dist[cur] + path_distances[cur][k] == dist[k]) {
-					if (sum_costs[cur] + path_costs[cur][k] < sum_costs[k]) {
-						neighbour[k] = cur;
-						sum_costs[k] = sum_costs[cur] + path_costs[cur][k];
-					}
+				// 有相同长度的路径
+				else if (cur_dist == path_dists[h] && cur_cost < path_costs[h]) {
+					path_neighbours[h] = cur;
+					path_costs[h] = cur_cost;
 				}
 			}
 
+		// 找最小值，放入S
 		min_dist = INT_MAX;
-		for (k = 0; k < N; ++k)
-			if (dist[k] != NA && !is_in_set[k] && dist[k] < min_dist) {
-				min_dist = dist[k];
-				min_index = k;
+		for (h = 0; h < N; ++h)
+			if (!is_in_set[h] && path_dists[h] < min_dist) {
+				min_dist = path_dists[h];
+				min_index = h;
 			}
+
+		// 放入S
 		is_in_set[min_index] = true;
 		cur = min_index;
 	}
 
-	vector <int> s;
-	for (i = D; neighbour[i] != -1; i = neighbour[i])
-		s.push_back(i);
-	s.push_back(S);
+	vector<int> path;
+	int City;
+	for (City = D; City != -1; City = path_neighbours[City])
+		path.push_back(City);
 
-	for (i = s.size() - 1; i >= 0; --i)
-		printf("%d ", s[i]);
-	printf("%d %d", dist[D], sum_costs[D]);
+	for (i = path.size()-1; i >= 0; --i)
+		printf("%d ", path[i]);
+
+	printf("%d %d", path_dists[D], path_costs[D]);
 
 	system("pause");
 	return 0;
