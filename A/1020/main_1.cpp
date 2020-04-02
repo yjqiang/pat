@@ -1,48 +1,58 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include <iostream>
+#include <vector>
 #include <algorithm>
-#include <cmath>
-# include <climits>
-#include <cstring>
-#include <map>
 #include <cstdio>
+#include <cstring>
+#include <string>
+#include <iostream>
+#include <map>
+#include <cmath>
+#include <climits>
 #include <queue>
+#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
+#define N_MAX 30
+
 struct Node {
-	int index, value;
+	int value;
+	// 完全二叉树编号法(一共30个点，最坏情况下，index也能控制在INT_MAX内)
+	int index;
+
+	// 层序遍历顺序与编号一致
+	bool operator<(const Node& b)const {
+		return index < b.index;
+	}
 };
 
-int post[30];
-int in[30];
-int N;
-Node nodes[30];
-int end_index_of_nodes = -1;
+vector<Node> result;
 
+int post[N_MAX];
+int in[N_MAX];
 
-void pre(int root, int start, int end, int index) {
+// root 为该子树的根在post数组的下标
+// start end为该子树在in数组的范围
+// index 完全二叉树编号法
+void check(int root, int start, int end, int index) {
 	if (start > end)
 		return;
 
 	int i;
-	for (i = start; in[i] != post[root]; ++i);
+	for (i = 0; in[i] != post[root]; ++i);
 
-	++end_index_of_nodes;
-	nodes[end_index_of_nodes].index = index;
-	nodes[end_index_of_nodes].value = post[root];
-
-	pre(root + i - 1 - end, start, i - 1, 2 * index + 1);
-	pre(root - 1, i + 1, end, 2 * index + 2);
+	result.push_back(Node{ post[root], index });
+	// 左子树
+	check(i + root - end - 1, start, i - 1, index * 2);
+	// 右子树
+	check(root -1, i + 1, end, index * 2 + 1);
 }
 
-int cmp(const void* p0, const void* p1) {
-	Node* node0 = (Node*)p0;
-	Node* node1 = (Node*)p1;
-	return node0->index - node1->index;
-}
 
 int main() {
+	int N;
 	scanf("%d", &N);
 
 	int i;
@@ -51,11 +61,16 @@ int main() {
 	for (i = 0; i < N; ++i)
 		scanf("%d", in + i);
 
-	pre(N - 1, 0, N - 1, 0);
-	qsort(nodes, N, sizeof(Node), cmp);
-	printf("%d", nodes[0].value);
+	check(N - 1, 0, N - 1, 1);
+	
+	sort(result.begin(), result.end());
+	
+	printf("%d", result[0].value);
 	for (i = 1; i < N; ++i)
-		printf(" %d", nodes[i].value);
+		printf(" %d", result[i].value);
+
+
+
 
 	system("pause");
 	return 0;
