@@ -7,81 +7,77 @@
 #include <iostream>
 #include <map>
 #include <cmath>
+#include <climits>
+#include <queue>
+#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
+#define N_MAX 100
+int N, M, S;
+
 struct Node {
 	int weight;
-	// ID 对应了nodes数组的index
-	vector<int> children_IDs;
+	vector<int> Child_IDs;
 };
 
-#define N_MAX 100
+// nodes[ID] = 对应node
 Node nodes[N_MAX];
 
 
+vector<int>tmp;
+void subset(int cur_ID, int sum_weight) {
+	int cur_weight = nodes[cur_ID].weight;
+	sum_weight += cur_weight;
+	tmp.push_back(cur_weight);
 
-// 目标S
-int S;
-
-// 暂存root到当前节点的路径，上的所有经过的点
-vector<int> tmp;
-
-// root(ID:00)->...->当前节点的父节点的路径和为sum
-void pre(int parent_ID, int sum) {
-	sum += nodes[parent_ID].weight;
-	tmp.push_back(nodes[parent_ID].weight);
-
+	int child_num = nodes[cur_ID].Child_IDs.size();
 	int i;
-	int n = nodes[parent_ID].children_IDs.size();
-
-	// 为叶节点，就判断一下
-	if (n == 0 && sum == S) {
-		int n_result, h;
-		printf("%d", tmp[0]);
-		n_result = tmp.size();
-		for (h = 1; h < n_result; ++h)
-			printf(" %d", tmp[h]);
-		printf("\n");
+	if (child_num == 0) {
+		if (sum_weight == S) {
+			printf("%d", tmp[0]);
+			for (i = 1; i < tmp.size(); ++i)
+				printf(" %d", tmp[i]);
+			printf("\n");
+		}
+		
+		tmp.pop_back();
+		return;
 	}
 
-
-	for (i = 0; i < n; ++i)
-		pre(nodes[parent_ID].children_IDs[i], sum);
+	
+	for (i = 0; i < child_num; ++i)
+		subset(nodes[cur_ID].Child_IDs[i], sum_weight);
 
 	tmp.pop_back();
 }
 
-
-// 从大到小排序
-bool cmp(int a, int b) {
-	return nodes[a].weight > nodes[b].weight;
+bool cmp(int& ID0, int& ID1) {
+	return nodes[ID0].weight > nodes[ID1].weight;
 }
 
 int main() {
-	int N, M;
-	int ID, K, child_ID;
+	scanf("%d %d %d", &N, &M, &S);
 
 	int i, h;
-
-	scanf("%d %d %d", &N, &M, &S);
-	// id 从0->(N-1)
 	for (i = 0; i < N; ++i)
 		scanf("%d", &(nodes[i].weight));
 
+	int ID, Child_ID, K;
 	for (i = 0; i < M; ++i) {
 		scanf("%d %d", &ID, &K);
 		for (h = 0; h < K; ++h) {
-			scanf("%d", &child_ID);
-			nodes[ID].children_IDs.push_back(child_ID);
+			scanf("%d", &Child_ID);
+			nodes[ID].Child_IDs.push_back(Child_ID);
 		}
-		// 直接对孩子节点先排序，这样保证了dfs的顺序就是从大到小
-		sort(nodes[ID].children_IDs.begin(), nodes[ID].children_IDs.end(), cmp);
+		// 先排序，那么dfs的时候直接就是题目要求的顺序
+		sort(nodes[ID].Child_IDs.begin(), nodes[ID].Child_IDs.end(), cmp);
 	}
-	int sum = 0;
-	pre(0, sum);
 
-		
+	subset(0, 0);
+
 	system("pause");
 	return 0;
 }
