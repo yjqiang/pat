@@ -9,67 +9,71 @@
 #include <cmath>
 #include <climits>
 #include <queue>
+#include <stack>
 #include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
-char options[2][6] = { "Push", "Pop" };
-char the_input[6];
+#define N_MAX 30
 
-// 前序中序后的遍历结果序列
-vector<int> mid;
-vector<int> pre;
+int pre[N_MAX];
+int in[N_MAX];
 
-vector<int> post;
+int post[N_MAX];
+// 下标指示
+int i_post = 0;
 
-
-// root 为 pre中该子树片段的父节点的下标
-// start end为 mid 中该子树的左右下标
-void func(int root, int start, int end) {
+// root 为该子树的根在pre数组的下标
+// start end为该子树在in数组的范围
+void check(int root, int start, int end) {
 	if (start > end)
 		return;
 
 	int i;
-	for (i = start; mid[i] != pre[root]; ++i);
+	for (i = 0; in[i] != pre[root]; ++i);
 
-	func(root + 1, start, i - 1);
-	func(root + i + 1 - start, i + 1,  end);
-	post.push_back(pre[root]);
+	check(root + 1, start, i - 1);
+	check(i + root - start + 1, i + 1, end);
+	post[i_post++] = pre[root];
 }
 
 int main() {
 	int N;
-	
 	scanf("%d", &N);
+	int double_N = 2 * N;
+
+	char command[5];
 
 	int i;
-	int num;
-	bool is_first = true;
 
-	vector<int> my_stack;
-	for (i = 2*N - 1; i >= 0; --i) {
-		scanf("%s", the_input);
-		// push
-		if (strcmp(the_input, options[0]) == 0) {
-			scanf("%d", &num);
-			my_stack.push_back(num);
-
-			pre.push_back(num);
+	// 下标指示
+	int i_pre = 0, i_in = 0;
+	int value;
+	stack<int>s;
+	// 根据遍历非递归形式，写的
+	for (i = 0; i < double_N; ++i) {
+		scanf("%s", command);
+		// Pop
+		if (command[1] == 'o') {
+			in[i_in++] = s.top();
+			s.pop();
 		}
-		// pop
+		// Push
 		else {
-			mid.push_back(my_stack.back());
-			my_stack.pop_back();
+			scanf("%d", &value);
+			pre[i_pre++] = value;
+			s.push(value);
 		}
+			
 	}
 
-
-	func(0, 0, N - 1);
-
+	check(0, 0, N - 1);
 	printf("%d", post[0]);
 	for (i = 1; i < N; ++i)
 		printf(" %d", post[i]);
-	
+
 	system("pause");
 	return 0;
 }
