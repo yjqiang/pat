@@ -18,7 +18,7 @@ using namespace std;
 int N;
 double P, r;
 
-// аз╫с╬ьуС
+// аз╫с╠М
 vector<int> vex[N_MAX];
 
 void bfs(int root) {
