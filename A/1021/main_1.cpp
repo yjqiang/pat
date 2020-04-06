@@ -1,82 +1,117 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include <iostream>
+#include <vector>
 #include <algorithm>
-#include <cmath>
-# include <climits>
-#include <cstring>
-#include <map>
 #include <cstdio>
+#include <cstring>
+#include <string>
+#include <iostream>
+#include <map>
+#include <cmath>
+#include <climits>
 #include <queue>
+#include <stack>
 #include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
-vector<int> paths[10005];
-bool visited[10005];
-int max_depth = INT_MIN;
-vector<int> result;
-set<int> s;
+#define N_MAX 10001
+int N;
+
+// 邻接表
+vector<int> edges[N_MAX];
 
 
-void dfs(int root, int depth) {
-	visited[root] = true;
 
-	if (depth > max_depth) {
-		result.clear();
-		result.push_back(root);
-		max_depth = depth;
-	}
-	else if (depth == max_depth)
-		result.push_back(root);
+// N个点，N-1条边，若非树，则必有非连通点
+// dfs
+int depths[N_MAX];
+bool visited[N_MAX];
+void dfs(int r, int depth) {
+	// 只有为树时，depth的赋值才被使用的
+	depths[r] = depth;
+	visited[r] = true;
+
+	int cur;
 
 	int i;
-	for (i = paths[root].size() - 1; i >= 0; --i) {
-		if (!visited[paths[root][i]])
-			dfs(paths[root][i], depth + 1);
+	int n_size = edges[r].size();
+	for (i = 0; i < n_size; ++i) {
+		cur = edges[r][i];
+		if (!visited[cur])
+			dfs(cur, depth + 1);
 	}
+		
 }
 
 int main() {
-	int N;
 	scanf("%d", &N);
 
 	int i;
-	int from, to;
+	int node0, node1;
+	// N-1条边录入
 	for (i = 1; i < N; ++i) {
-		scanf("%d%d", &from, &to);
-		paths[from].push_back(to);
-		paths[to].push_back(from);
+		scanf("%d %d", &node0, &node1);
+		edges[node0].push_back(node1);
+		edges[node1].push_back(node0);
 	}
+
 	
-	max_depth = INT_MIN;
+
+
+	// 第一轮，随便找一个点X，找出距离X最远距离的所有点
+	// dfs 查找connected components
 	for (i = 1; i <= N; ++i)
 		visited[i] = false;
-	result.clear();
-	
 	int count = 0;
 	for (i = 1; i <= N; ++i)
-		if (!visited[i]){
-			dfs(i, 0);
+		if (!visited[i]) {
 			++count;
+			dfs(i, 0);
 		}
 
-	if (count > 1)
-		printf("Error: %d components", count);
-	else {
-		for (i = result.size() - 1; i >= 0; --i)
-			s.insert(result[i]);
-
-		max_depth = INT_MIN;
-		for (i = 1; i <= N; ++i)
-			visited[i] = false;
-		result.clear();
-
-		dfs(*(s.begin()), 0);
-		for (i = result.size() - 1; i >= 0; --i)
-			s.insert(result[i]);
-		for (set<int>::iterator index_set = s.begin(); index_set != s.end(); ++index_set)
-			printf("%d\n", *index_set);
+	if (count != 1) {
+		printf("Error: %d components\n", count);
+		system("pause");
+		return 0;
 	}
+	
+	set<int>result;
+	int max_depth = -1;
+	// 先搜索出最深的depth
+	for (i = 1; i <= N; ++i)
+		if (depths[i] > max_depth)
+			max_depth = depths[i];
+	// 根据depth输出result
+	for (i = 1; i <= N; ++i)
+		if (depths[i] == max_depth)
+			result.insert(i);
+
+
+
+
+	// 第二轮，根据上一轮的远距离点，二次dfs
+	for (i = 1; i <= N; ++i)
+		visited[i] = false;
+	// dfs
+	dfs(*result.begin(), 0);
+
+	max_depth = -1;
+	// 先搜索出最深的depth
+	for (i = 1; i <= N; ++i)
+		if (depths[i] > max_depth)
+			max_depth = depths[i];
+	// 根据depth输出result
+	for (i = 1; i <= N; ++i)
+		if (depths[i] == max_depth)
+			result.insert(i);
+
+	set<int>::iterator set_i;
+	for (set_i = result.begin(); set_i != result.end(); ++set_i)
+		printf("%d\n", *set_i);
+
+
 	system("pause");
 	return 0;
 }
