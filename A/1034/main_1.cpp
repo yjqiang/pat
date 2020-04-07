@@ -1,33 +1,63 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include <iostream>
-
-#include <map>
-
-#include <set>
-
-#include <climits>
+#include <vector>
+#include <algorithm>
 #include <cstdio>
-#include <queue>
+#include <cstring>
 #include <string>
-#include <cstdlib>
+#include <iostream>
+#include <map>
+#include <cmath>
+#include <climits>
+#include <queue>
+#include <stack>
+#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
-// N个边， 最多2N点
-#define N_MAX 2001
+#define N_MAX 1001
+// 1000通电话，最多2000人
+#define USERS_NUM_MAX 2002
+int N, K;
+
+
+// 每个点的权重，每一通电话的两个人，均加上Time；类似于加上了出入度
+int weights[USERS_NUM_MAX] = { 0 };
+
+int users_num = 0;
+string users[USERS_NUM_MAX];
+// 与users互逆
+map<string, int> indices;
+
 
 struct Gang {
-	int count;
-	int sum_weight;
 	int head;
+	int sum_weight;
+	int n_size;
+
+	bool operator<(const Gang& b)const {
+		return users[head] < users[b.head];
+	}
 };
 
-map<int, Gang> gangs;
-Gang results[N_MAX];
+int str2int(string& name) {
+	int result;
+	if (indices.find(name) == indices.end()) {
+		result = users_num++;
+		indices[name] = result;
+		users[result] = name;
+	}
+	else {
+		result = indices[name];
+	}
+	return result;
+}
 
-int parents[N_MAX];
+// 并查集，默认-1
+int parents[USERS_NUM_MAX];
 
-int myFind(int x) {
+int findRoot(int x) {
 	int r = x;
 	while (parents[r] != -1)
 		r = parents[r];
@@ -41,96 +71,75 @@ int myFind(int x) {
 	return r;
 }
 
-
 void myUnion(int a, int b) {
-	int root0 = myFind(a);
-	int root1 = myFind(b);
-	if (root0 != root1)
-		parents[root0] = root1;
-}
+	int root_a = findRoot(a);
+	int root_b = findRoot(b);
 
-int weights[N_MAX] = { 0 };
-
-map<string, int> str2int;
-map<int, string> int2str;
-
-int cmp(const void* p0, const void* p1) {
-	Gang* gang0 = (Gang*)p0;
-	Gang* gang1 = (Gang*)p1;
-	int result = int2str[gang0->head].compare(int2str[gang1->head]);
-	return result;
+	if (root_a != root_b)
+		parents[root_a] = root_b;
 }
 
 int main() {
-	int N, K;
+	int i;
 	cin >> N >> K;
 
-	int i;
+	for (i = 0; i < USERS_NUM_MAX; ++i)
+		parents[i] = -1;
+	
 	string Name1, Name2;
 	int Time;
-
-	for (i = 0; i < N_MAX; ++i)
-		parents[i] = -1;
-
+	int index1, index2;
 	for (i = 0; i < N; ++i) {
 		cin >> Name1 >> Name2 >> Time;
-
-		// 转化 string 和 int
-		if (str2int.find(Name1) == str2int.end()) {
-			str2int[Name1] = str2int.size();
-			int2str[str2int[Name1]] = Name1;
-		}
-		if (str2int.find(Name2) == str2int.end()) {
-			str2int[Name2] = str2int.size();
-			int2str[str2int[Name2]] = Name2;
-		}
-
-		// 权重下放到节点
-		weights[str2int[Name1]] += Time;
-		weights[str2int[Name2]] += Time;
+		index1 = str2int(Name1);
+		index2 = str2int(Name2);
 
 		// 并查集
-		myUnion(str2int[Name1], str2int[Name2]);
+		myUnion(index1, index2);
+
+		// 权重下放到节点
+		weights[index1] += Time;
+		weights[index2] += Time;
 	}
 
-	int n_vertex = str2int.size();
 	int root;
+	// roots[根节点] = gang
+	map<int, Gang> roots;
 
-	for (i = 0; i < n_vertex; ++i) {
-		root = myFind(i);
-		// printf("%d(%s)->%d(%s)\n", i, int2str[i].c_str(), root, int2str[root].c_str());
-		if (gangs.find(root) == gangs.end()) {
+
+	for (i = 0; i < users_num; ++i) {
+		root = findRoot(i);
+		if (roots.find(root) == roots.end()) {
 			// 注意初始化的赋值：设为当前节点的情况，而不是root
-			gangs[root].count = 1;
-			gangs[root].sum_weight = weights[i];
-			gangs[root].head = i;
+			roots[root].n_size = 1;
+			roots[root].head = i;
+			roots[root].sum_weight = weights[i];
 		}
 		else {
-			++gangs[root].count;
-			gangs[root].sum_weight += weights[i];
-			if (weights[i] > weights[gangs[root].head])
-				gangs[root].head = i;
+			++roots[root].n_size;
+			roots[root].sum_weight += weights[i];
+			if (weights[roots[root].head] < weights[i]) {
+				roots[root].head = i;
+			}
 		}
+
 	}
 
-	int n_gangs = gangs.size();
-	map<int, Gang>::iterator i_map;
-	int n_results;
-	for (i_map = gangs.begin(), n_results = 0; i_map != gangs.end(); ++i_map)
+	vector<Gang> result;
+
+	map<int, Gang>::iterator map_i;
+	for (map_i = roots.begin(); map_i != roots.end(); ++map_i) {
 		// 注意weight / 2，因为我们相当于出入度都算了，重复计算了
-		if ((i_map->second).count > 2 && (i_map->second).sum_weight / 2 > K) {
-			results[n_results].count = i_map->second.count;
-			results[n_results].head = i_map->second.head;
-			++n_results;
-		}
-			
-	printf("%d\n", n_results);
-	if (n_results) {
-		qsort(results, n_results, sizeof(Gang), cmp);
-		for (i = 0; i < n_results; ++i)
-			printf("%s %d\n", int2str[results[i].head].c_str(), results[i].count);
+		if (map_i->second.n_size > 2 && map_i->second.sum_weight / 2 > K)
+			result.push_back(map_i->second);
 	}
 
+	sort(result.begin(), result.end());
+	int n_size = result.size();
+	printf("%d\n", n_size);
+	for (i = 0; i < n_size; ++i)
+		printf("%s %d\n", users[result[i].head].c_str(), result[i].n_size);
+	
 
 	system("pause");
 	return 0;
