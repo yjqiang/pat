@@ -18,7 +18,7 @@ using namespace std;
 
 #define N_MAX 100001
 
-// count_S2[c] 表示 c字符有无在S2中出现
+// count_S2[c] : if the char "c" appears in S2
 bool count_S2[N_MAX] = { false };
 
 char S1[N_MAX], S2[N_MAX];
