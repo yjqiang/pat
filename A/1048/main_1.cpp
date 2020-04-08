@@ -6,38 +6,51 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <cmath>
+#include <climits>
+#include <queue>
+#include <stack>
+#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
+#define V_MAX 501
 
-int counts[1001] = { 0 };
+// coins[面额] = 该面额对应的数目
+int coins[V_MAX] = { 0 };
 
 
 int main() {
 	int N, M;
-	scanf("%d%d", &N, &M);
+	scanf("%d %d", &N, &M);
 
 	int i;
-	int coin;
+	int V;
 	for (i = 0; i < N; ++i) {
-		scanf("%d", &coin);
-		++counts[coin];
+		scanf("%d", &V);
+		++coins[V];
 	}
 
-	for (i = 1; i <= 1000; ++i)
-		if (counts[i] > 0) {
-			// 防止M=2  coins = {1,} 这种情况
-			--counts[i];
-			// M-i >= 1 && M-i <= 1000防止越界
-			if (M - i >= 1 && M - i <= 1000 && counts[M - i] > 0) {
-				printf("%d %d", i, M - i);
-				system("pause");
-				return 0;
+	int V1, V2;
+	bool is_ok = false;
+	for (i = 0; i < V_MAX; ++i)
+		if (coins[i] > 0) {
+			V1 = i;
+			V2 = M - V1;
+			if (V2 >= 0 && V2 < V_MAX) {
+				// 可能出现 M = 2 输入为 {1, 1}
+				if (V2 == V1 && coins[V2] > 1 || V2 != V1 && coins[V2]) {
+					is_ok = true;
+					printf("%d %d", V1, V2);
+					break;
+				}
 			}
-			--counts[i];
-		}
 
-	printf("No Solution");
+		}
+	if (!is_ok)
+		printf("No Solution");
 
 	system("pause");
 	return 0;
