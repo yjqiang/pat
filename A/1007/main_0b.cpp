@@ -1,57 +1,88 @@
-# define _CRT_SECURE_NO_WARNINGS
-# include <cstdlib>
-# include <cstdio>
-# include <vector>
-# include <ctime>
-# include <iostream>
-# include <cstring>
-# include <climits>
-# include <cmath>
+#define _CRT_SECURE_NO_WARNINGS
+#include <vector>
+#include <algorithm>
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <iostream>
+#include <map>
+#include <cmath>
+#include <climits>
+#include <queue>
+#include <stack>
+#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
-int a[10005];
+#define K_MAX 10001
+int K;
+
+int nums[K_MAX];
+
+bool allNegative() {
+	int i;
+	for (i = 1; i <= K; ++i)
+		if (nums[i] >= 0)
+			return false;
+	return true;
+}
+
+// result = nums[i] + nums[i+1] + ... + nums[j]
+struct Sum {
+	int result;
+	int i, j;
+};
 
 int main() {
-	int K;
+	
 	scanf("%d", &K);
 
 	int i;
-	for (i = 0; i < K; ++i)
-		scanf("%d", a + i);
+	for (i = 1; i <= K; ++i)
+		scanf("%d", nums + i);
 
-	int left = 0, right = K-1, result=INT_MIN;
-	long long int dp_i = INT_MIN;
-	long long int tmp0, tmp1;
-	int tmp_left = 0, tmp_right;
-	
-	for (i = 0; i < K; ++i) {
-		tmp0 = dp_i + a[i];
-		tmp1 = a[i];
-		if (tmp0 >= tmp1) {
-			dp_i = tmp0;
-			
-			tmp_right = i;
+	if (allNegative()) {
+		printf("0 %d %d", nums[1], nums[K]);
+		return 0;
+	}
+
+	// cur_sums[i] = 以 nums[i] 为结尾的最大sum的序列
+	Sum cur_sums_i;
+	cur_sums_i.result = nums[1];
+	cur_sums_i.i = cur_sums_i.j = 1;
+
+	// result_sum 为最优子串的结果
+	Sum result;
+	result.result = nums[1];
+	result.i = result.j = 1;
+
+	int sum1, sum2;
+
+	for (i = 2; i <= K; ++i) {
+		sum1 = cur_sums_i.result + nums[i];
+		sum2 = nums[i];
+		if (sum2 > sum1) {
+			cur_sums_i.result = sum2;
+			cur_sums_i.i = i;
+			cur_sums_i.j = i;
 		}
 		else {
-			dp_i = tmp1;
-
-			tmp_left = i;
-			tmp_right = i;
+			cur_sums_i.result = sum1;
+			// max_sums_i.i = max_sums_i.i;
+			cur_sums_i.j = i;
 		}
 		
-		if (dp_i > result) {
-			left = tmp_left;
-			right = tmp_right;
-			result = dp_i;
+		if (cur_sums_i.result > result.result) {
+			result.result = cur_sums_i.result;
+			result.i = cur_sums_i.i;
+			result.j = cur_sums_i.j;
 		}
-		printf("i=%d, dp_i=%lld, left=%d, right=%d\n", i, dp_i, left, right);
-		
 	}
-	if(result < 0)
-		printf("%d %d %d", 0, a[0], a[K-1]);
-	else
-		printf("%d %d %d", result, a[left], a[right]);
+
+	printf("%d %d %d", result.result, nums[result.i], nums[result.j]);
+
 	system("pause");
 	return 0;
 }
