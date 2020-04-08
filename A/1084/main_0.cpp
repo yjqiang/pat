@@ -13,7 +13,7 @@
 
 using namespace std;
 
-// 代表ascii码
+// ascii
 bool is_exists[128] = { false };
 
 int main() {
@@ -34,7 +34,7 @@ int main() {
 		tmp = toupper(a[i]);
 		if (!is_exists[tmp]) {
 			printf("%c", tmp);
-			// 不重复打印
+			// Each worn out key must be printed once only
 			is_exists[tmp] = true;
 		}
 	}
