@@ -7,32 +7,33 @@
 #include <iostream>
 #include <map>
 #include <cmath>
+#include <climits>
+#include <queue>
+#include <stack>
+#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
-#define N_MAX 10001
-char S1[N_MAX];
-char S2[N_MAX];
+#define N_MAX 100001
 
-bool should_del[128] = { false };
+// count_S2[c] 表示 c字符有无在S2中出现
+bool count_S2[N_MAX] = { false };
+
+char S1[N_MAX], S2[N_MAX];
 
 int main() {
 	cin.getline(S1, N_MAX);
 	cin.getline(S2, N_MAX);
+
 	int i;
 	for (i = 0; S2[i] != '\0'; ++i)
-		// 标记删除
-		should_del[(int)S2[i]] = true;
+		count_S2[(int)S2[i]] = true;
 
-	int actual_i;
-	for (i = 0, actual_i = 0; S1[i] != '\0'; ++i)
-		if (!should_del[(int)S1[i]]) {
-			S1[actual_i] = S1[i];
-			++actual_i;
-		}
-	S1[actual_i] = '\0';
-
-	printf("%s", S1);
+	for (i = 0; S1[i] != '\0'; ++i)
+		if (!count_S2[(int)S1[i]])
+			printf("%c", S1[i]);
 
 	system("pause");
 	return 0;
