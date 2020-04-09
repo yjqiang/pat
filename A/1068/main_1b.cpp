@@ -25,7 +25,7 @@ int nums[N_MAX];
 // 初始化为0，表示dp[0][j] 全为0
 int dp[M_MAX] = {0};
 
-// results[i][j] 表示恰好以j为和的子序列中，最大编号为i的子序列是否存在
+// results[i][j] 表示恰好以j为和的子序列中，最大编号为i的最优子序列（原题要求output the smallest sequence）是否存在
 bool results[N_MAX][M_MAX] = { false };
 
 // 从大到小排序
