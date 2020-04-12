@@ -8,76 +8,89 @@
 #include <map>
 #include <cmath>
 #include <climits>
+#include <queue>
+#include <stack>
+#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
 #define N_MAX 100000
+#define AGE_MAX 201
 
-struct User {
+struct Person {
 	char Name[9];
 	int Age;
 	int Net_worth;
 };
 
-User users[N_MAX];
-int age_counts[201] = { 0 };
+
+Person people[N_MAX];
+// 统计每个年龄段的人
+int n_per_age[AGE_MAX] = { 0 };
 
 int cmp(const void* p0, const void* p1) {
-	User* u0 = (User*)p0;
-	User* u1 = (User*)p1;
-	if (u0->Net_worth != u1->Net_worth)
-		return u1->Net_worth - u0->Net_worth;
-	if (u0->Age != u1->Age)
-		return u0->Age - u1->Age;
-	return strcmp(u0->Name, u1->Name);
+	Person* a = (Person*)p0;
+	Person* b = (Person*)p1;
+
+	if (a->Net_worth != b->Net_worth)
+		return b->Net_worth - a->Net_worth;
+
+	if (a->Age != b->Age)
+		return a->Age - b->Age;
+
+	return strcmp(a->Name, b->Name);
 }
+
+
 
 int main() {
 	int N, K;
-	int M, Amin, Amax;
+	scanf("%d %d", &N, &K);
+
+	int i;
 	
-	scanf("%d%d", &N, &K);
-	
-	int i, h;
 	for (i = 0; i < N; ++i)
-		scanf("%s %d %d", users[i].Name, &(users[i].Age), &(users[i].Net_worth));
+		scanf("%s %d %d", people[i].Name, &people[i].Age, &people[i].Net_worth);
 
-	qsort(users, N, sizeof(User), cmp);
+	qsort(people, N, sizeof(Person), cmp);
 
-	int Age;
+	
 	// M最大100，每个年龄段指保留前100人即可
+	int h, Age;
 	for (i = 0, h = 0; i < N; ++i) {
-		Age = users[i].Age;
-		if (age_counts[Age] < 100) {
-			strcpy(users[h].Name, users[i].Name);
-			users[h].Age = users[i].Age;
-			users[h].Net_worth = users[i].Net_worth;
+		Age = people[i].Age;
+		if (n_per_age[Age] < 100) {
+			strcpy(people[h].Name, people[i].Name);
+			people[h].Age = people[i].Age;
+			people[h].Net_worth = people[i].Net_worth;
+
 			++h;
-			++age_counts[Age];
+			++n_per_age[Age];
 		}
 	}
 	// 更新N
 	N = h;
 
-
+	int M, Amin, Amax;
 	int count;
-	bool none;
 	for (i = 1; i <= K; ++i) {
 		scanf("%d %d %d", &M, &Amin, &Amax);
 		printf("Case #%d:\n", i);
-		for (h = 0, count = 0, none = true; h < N; ++h)
-			if (users[h].Age <= Amax && users[h].Age >= Amin) {
-				printf("%s %d %d\n", users[h].Name, users[h].Age, users[h].Net_worth);
-				none = false;
+
+		for (count = 0, h = 0; h < N && count < M; ++h) {
+			Age = people[h].Age;
+			if (Age <= Amax && Age >= Amin) {
+				printf("%s %d %d\n", people[h].Name, people[h].Age, people[h].Net_worth);
 				++count;
-				if (count == M)
-					break;
 			}
-		if (none)
+
+		}
+		if (count == 0)
 			printf("None\n");
-
 	}
-
+	
 	system("pause");
 	return 0;
 }
