@@ -63,7 +63,7 @@ int main() {
 	if (i == N + 1) {
 		printf("Insertion Sort\n");
 		num = half_sorted[threshold];
-		for (i = threshold - 1; i >= 1 && half_sorted[i] > num; --i)
+		for (i = threshold - 1; i >= 1 && half_sorted[i] >= num; --i)
 			half_sorted[i + 1] = half_sorted[i];
 
 		half_sorted[i + 1] = num;
@@ -74,7 +74,7 @@ int main() {
 		printf("Heap Sort\n");
 
 		// 大根堆的root在half_sort[1]处
-		for (i = N; i >= 2 && half_sorted[i] > half_sorted[1]; --i);
+		for (i = N; i >= 2 && half_sorted[i] >= half_sorted[1]; --i);
 		int n_tree = i;  // 当前大根堆的大小
 
 		swap(half_sorted[1], half_sorted[n_tree]);
