@@ -9,51 +9,56 @@
 #include <cmath>
 #include <climits>
 #include <queue>
+#include <stack>
 #include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
 #define N_MAX 1001
 int N;
-// index从1开始
-int sorted[N_MAX];
 
-// index从1开始
-// 最终建立的树（完全二叉树表示法）
-int a[N_MAX];
+int mid[N_MAX];
 
-// 记录这是中序遍历的顺序
-int position = 1;
+// level[完全二叉树的index] = num
+int level[N_MAX];
 
 int cmp(const void* p0, const void* p1) {
-	int* i0 = (int*)p0;
-	int* i1 = (int*)p1;
-	return (*i0) - (*i1);
+	int* a = (int*)p0;
+	int* b = (int*)p1;
+	return *a - *b;
 }
 
-// 中遍历建立子树a[i]
-void mid(int i) {
-	if (i > N)
+// 指示下标
+int mid_i = 1;
+// 中序遍历
+void mid_check(int index) {
+	if (index > N)
 		return;
-	mid(2 * i);
-	a[i] = sorted[position++];
-	mid(2 * i + 1);
+	// 左子树
+	mid_check(index * 2);
+
+	level[index] = mid[mid_i++];
+
+	// 右子树
+	mid_check(index * 2 + 1);
 }
 
 int main() {
 	scanf("%d", &N);
 
+	// 中序遍历是从小到大排好序的
 	int i;
 	for (i = 1; i <= N; ++i)
-		scanf("%d", sorted + i);
-	// 从小到大
-	qsort(sorted + 1, N, sizeof(int), cmp);
-	
-	mid(1);
+		scanf("%d", mid + i);
+	qsort(mid + 1, N, sizeof(int), cmp);
 
-	printf("%d", a[1]);
+	mid_check(1);
+
+	printf("%d", level[1]);
 	for (i = 2; i <= N; ++i)
-		printf(" %d", a[i]);
+		printf(" %d", level[i]);
 
 	system("pause");
 	return 0;
