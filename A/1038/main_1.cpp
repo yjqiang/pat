@@ -1,54 +1,59 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include <iostream>
-
-#include <map>
-
-#include <set>
-
-#include <climits>
-#include <cstdio>
-#include <queue>
-#include <string>
-#include <cstdlib>
-#include <cstring>
+#include <vector>
 #include <algorithm>
+#include <cstdio>
+#include <cstring>
+#include <string>
+#include <iostream>
+#include <map>
+#include <cmath>
+#include <climits>
+#include <queue>
+#include <stack>
+#include <set>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
-#define N_MAX 10001
 
-string a[N_MAX];
+#define N_MAX 10000
 
-bool cmp(string &x, string &y) {
-	return x + y < y + x;
+
+vector<string> strings;
+
+bool cmp(string& a, string& b) {
+	return a + b < b + a;
 }
 
 int main() {
+	ios::sync_with_stdio(false);
 	int N;
 	cin >> N;
 
 	int i;
-	for (i = 0; i < N; ++i)
-		cin >> a[i];
+	string s;
+	for (i = 0; i < N; ++i) {
+		cin >> s;
+		strings.push_back(s);
+	}
 
-	sort(a, a + N, cmp);
+	sort(strings.begin(), strings.end(), cmp);
 
-	int k;
-	// 开头不该打印0
-	bool should_zore_be_print = false;
 	string result;
 	for (i = 0; i < N; ++i)
-		result += a[i];
-	
-	for (i = 0; result[i] == '0' && i < result.size(); ++i);
-	
-	if (i == result.size())
+		result += strings[i];
+
+	// remove the zeros at the beginning
+	int n_size = result.size();
+	for (i = 0; i < n_size && result[i] == '0'; ++i);
+
+	if (i == n_size)
 		printf("0");
-	else {
-		for (; i < result.size(); ++i)
+	else
+		for (; i < n_size; ++i)
 			printf("%c", result[i]);
-	}
-		
+
 	system("pause");
 	return 0;
 }
